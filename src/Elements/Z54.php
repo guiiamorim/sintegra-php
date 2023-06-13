@@ -1,14 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
@@ -23,155 +30,23 @@ namespace NFePHP\Sintegra\Elements;
  * apresentação deste registro (veja § 4o da cláusula 5a do Conv ICMS 57/95).
  */
 
-use NFePHP\Sintegra\Common\Element;
-use NFePHP\Sintegra\Common\ElementInterface;
-use \stdClass;
+use NFePHP\Sintegra\Common\ElementBase;
+use NFePHP\Sintegra\Common\Records;
+use NFePHP\Sintegra\Exceptions\ElementValidation;
+use NFePHP\Sintegra\Formatters as Format;
+use NFePHP\Sintegra\Validation as Validate;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class Z54 extends Element implements ElementInterface
+final class Z54 extends ElementBase
 {
-    const REGISTRO = '54';
+    #[Assert\NotBlank(message: 'O CPF / CNPJ é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpj;
 
-    protected $parameters = [
-        'CNPJ' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => true,
-            'info' => 'CNPJ do remetente nas entradas e dos destinátarios nas saídas',
-            'format' => 'totalNumber',
-            'length' => 14
-        ],
-        'COD_MOD' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{2}$',
-            'required' => true,
-            'info' => 'Código do modelo da nota fiscal',
-            'format' => 'totalNumber',
-            'length' => 2
-        ],
-        'SERIE' => [
-            'type' => 'string',
-            'regex' => '^.{1,3}$',
-            'required' => true,
-            'info' => 'Série do documento fiscal',
-            'format' => '',
-            'length' => 3
-        ],
-        'NUM_DOC' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,6}$',
-            'required' => true,
-            'info' => 'Número do documento fiscal',
-            'format' => 'totalNumber',
-            'length' => 6
-        ],
-        'CFOP' => [
-            'type' => 'numeric',
-            'regex' => "^[1,2,3,5,6,7]{1}[0-9]{3}$",
-            'required' => true,
-            'info' => 'Código Fiscal de Operação e Prestação',
-            'format' => '',
-            'length' => 4
-        ],
-        'CST' => [
-            'type' => 'string',
-            'regex' => '^.{1,3}$',
-            'required' => true,
-            'info' => 'Código da Situação Tributária',
-            'format' => '',
-            'length' => 3
-        ],
-        'NUMERO_ITEM' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,3}$',
-            'required' => true,
-            'info' => 'Número de ordem do item na nota fiscal',
-            'format' => 'totalNumber',
-            'length' => 3
-        ],
-        'CODIGO_PRODUTO' => [
-            'type' => 'string',
-            'regex' => '^.{1,14}$',
-            'required' => true,
-            'info' => 'Código do produto ou serviço do informante',
-            'format' => '',
-            'length' => 14
-        ],
-        'QUANTIDADE' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Quantidade do produto (com 3 decimais)',
-            'format' => '8v3',
-            'length' => 11
-        ],
-        'VL_PRODUTO' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor bruto do produto (valor unitário multiplicado por quantidade) - com 2 decimais',
-            'format' => '10v2',
-            'length' => 12
-        ],
-        'DESCONTO' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor do Desconto Concedido no item (com 2 decimais).',
-            'format' => '10v2',
-            'length' => 12
-        ],
-        'VL_BC_ICMS' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Base de cálculo do ICMS (com 2 decimais)',
-            'format' => '10v2',
-            'length' => 12
-        ],
-        'VL_BC_ICMS_ST' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Base de cálculo do ICMS de retenção na Substituição Tributária (com 2 decimais)',
-            'format' => '10v2',
-            'length' => 12
-        ],
-        'VL_IPI' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor do IPI (com 2 decimais)',
-            'format' => '10v2',
-            'length' => 12
-        ],
-        'ALIQUOTA' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => false,
-            'info' => 'Alíquota Utilizada no Cálculo do ICMS (com 2 decimais)',
-            'format' => '2v2',
-            'length' => 4
-        ],
-    ];
-
-    /**
-     * Constructor
-     * @param \stdClass $std
-     */
-    public function __construct(\stdClass $std)
-    {
-        parent::__construct(self::REGISTRO);
-        $this->std = $this->standarize($std);
-        $this->postValidation();
-    }
-
-    /**
-     * Validação secundária sobre as data informadas
-     * @throws \Exception
-     */
-    public function postValidation()
-    {
-        $possible = [
+    #[Assert\NotBlank(message: 'O modelo da nota fiscal é obrigatório.')]
+    #[Assert\Choice(
+        choices: [
             '01', //01 - Nota Fiscal, modelo 1
             '02', //02 - Nota Fiscal de Venda a Consumidor, modelo 02
             '03', //03 - Nota Fiscal de Entrada, modelo 3
@@ -191,7 +66,7 @@ class Z54 extends Element implements ElementInterface
             '20', //20 - Ordem de Coleta de Carga, modelo 20
             '21', //21 - Nota Fiscal de Serviço de Comunicação, modelo 21
             '22', //22 - Nota Fiscal de Serviço de Telecomunicações, modelo 22
-            '24', //Autorização de Carregamento e Transporte, modelo 24
+            '24', //24 - Autorização de Carregamento e Transporte, modelo 24
             '25', //25 - Manifesto de Carga, modelo 25
             '26', //26 - Conhecimento de Transporte Multimodal de Cargas, modelo 26
             '27', //27 - Nota Fiscal de Serviço de Transporte Ferroviário, modelo 27
@@ -202,14 +77,131 @@ class Z54 extends Element implements ElementInterface
             '65', //65 - Nota Fiscal de Consumidor Eletrônica, modelo 65
             '66', //66 - NOta Fiscal Energia Eletrica Eletrônica, modelo 66
             '67', //67 - Conhecimento de Transporte Eletrônico para Outros Serviços, modelo 67
-        ];
-        if (!in_array($this->std->cod_mod, $possible)) {
-            $this->errors[] = (object) [
-                'message' => "[$this->reg] campo: COD_MOD "
-                . "Código [{$this->std->cod_mod}] de documento fiscal não encontrado.",
-                'std' => $this->std
-            ];
-        }
-        $this->validDoc($this->std->cnpj, 'CNPJ');
+        ],
+        message: 'Modelo da nota fiscal inválido.',
+    )]
+    protected string $codigoModelo;
+
+    #[Assert\NotBlank(message: 'A série do documento fiscal é obrigatória.')]
+    #[Assert\Regex('/^\d{1,3}$/', message: 'A série do documento fiscal deve ter no mínimo 1 dígito e no máximo 3.')]
+    #[Format\Text(3)]
+    protected string $serie;
+
+    #[Assert\NotBlank(message: 'O número do documento fiscal é obrigatório.')]
+    #[Assert\Regex('/^\d{1,6}$/', message: 'O número do documento fiscal deve ter no mínimo 1 dígito e no máximo 6.')]
+    #[Format\Number(6)]
+    protected string $numeroDocumento;
+
+    #[Assert\NotBlank(message: 'O CFOP é obrigatório.')]
+    #[Assert\Regex('/^[1,2,3,5,6,7]{1}[0-9]{3}$/', message: 'CFOP inválido.')]
+    protected string $cfop;
+
+    #[Assert\NotBlank(message: 'O Código da Situação Tributária é obrigatório.')]
+    #[Assert\Regex('/^.{1,3}$/', message: 'CST inválido.')]
+    #[Format\Number(3)]
+    protected string $cst;
+
+    #[Assert\NotBlank(message: 'A ordem do item na nota é obrigatória.')]
+    #[Assert\Positive(message: 'A ordem do item deve ser maior que 0.')]
+    #[Format\Number(3)]
+    protected string $numeroItem;
+
+    #[Assert\NotBlank(message: 'O código do produto é obrigatório.')]
+    #[Format\Text(14)]
+    protected string $codigoProduto;
+
+    #[Assert\NotBlank(message: 'A quantidade do produto é obrigatória.')]
+    #[Assert\Positive(message: 'A quantidade de produtos deve ser superior a 0.')]
+    #[Format\Number(11, 3)]
+    protected string $quantidade;
+
+    #[Assert\NotBlank(message: 'O valor do produto é obrigatório.')]
+    #[Assert\Positive(message: 'O valor do produto deve ser superior a 0.')]
+    #[Format\Number(12, 2)]
+    protected string $valorProduto;
+
+    #[Assert\NotBlank(message: 'O desconto do produto é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O desconto do produto deve ser igual ou superior a 0.')]
+    #[Format\Number(12, 2)]
+    protected string $desconto;
+
+    #[Assert\NotBlank(message: 'A base de cálculo do ICMS do documento fiscal é obrigatória.')]
+    #[Assert\PositiveOrZero(message: 'A base de cálculo do ICMS do documento não pode ser negativo.')]
+    #[Format\Number(12, 2)]
+    protected string $baseIcms;
+
+    #[Assert\NotBlank(message: 'O valor da base de retenção do ICMS é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor da base de retenção do ICMS não pode ser negativo.')]
+    #[Format\Number(12, 2)]
+    protected string $retencaoIcms;
+
+    #[Assert\NotBlank(message: 'O valor do IPI é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor do IPI não pode ser negativo.')]
+    #[Format\Number(12, 2)]
+    protected string $valorIpi;
+
+    #[Assert\NotBlank(message: 'O valor da alíquota é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor da alíquota não pode ser negativo.')]
+    #[Format\Number(4, 2)]
+    protected string $aliquota;
+
+    /**
+     * Constructor
+     *
+     * @param string $cnpj CNPJ do remetente nas entradas e dos destinátarios nas saídas
+     * @param int $codigoModelo Código do modelo da nota fiscal
+     * @param string $serie Série do documento fiscal
+     * @param int $numeroDocumento Número do documento fiscal
+     * @param int $cfop Código Fiscal de Operação e Prestação
+     * @param string $cst Código da Situação Tributária
+     * @param int $numeroItem Número de ordem do item na nota fiscal
+     * @param string $codigoProduto Código do produto ou serviço do informante
+     * @param float $quantidade Quantidade do produto
+     * @param float $valorProduto Valor bruto do produto
+     * @param float $baseIcms Base de cálculo do ICMS
+     * @param float $retencaoIcms Base de cálculo do ICMS de retenção na Substituição Tributária
+     * @param float $valorIpi Valor do IPI
+     * @param float $desconto Valor do desconto concedido no item
+     * @param float $aliquota Alíquota utilizada no cálculo do ICMS
+     *
+     * @throws ElementValidation
+     */
+    public function __construct(
+        string $cnpj,
+        int $codigoModelo,
+        string $serie,
+        int $numeroDocumento,
+        int $cfop,
+        string $cst,
+        int $numeroItem,
+        string $codigoProduto,
+        float $quantidade,
+        float $valorProduto,
+        float $baseIcms,
+        float $retencaoIcms,
+        float $valorIpi,
+        float $desconto = 0.00,
+        float $aliquota = 0.00,
+    ) {
+        parent::__construct(Records::REGISTRO_54);
+
+        $this->cnpj = $cnpj;
+        $this->codigoModelo = (string) $codigoModelo;
+        $this->serie = $serie;
+        $this->numeroDocumento = (string) $numeroDocumento;
+        $this->cfop = (string) $cfop;
+        $this->cst = $cst;
+        $this->numeroItem = (string) $numeroItem;
+        $this->codigoProduto = $codigoProduto;
+        $this->quantidade = (string) $quantidade;
+        $this->valorProduto = (string) $valorProduto;
+        $this->baseIcms = (string) $baseIcms;
+        $this->retencaoIcms = (string) $retencaoIcms;
+        $this->valorIpi = (string) $valorIpi;
+        $this->desconto = (string) $desconto;
+        $this->aliquota = (string) $aliquota;
+
+        $this->validate();
+        $this->format();
     }
 }

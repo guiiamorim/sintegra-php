@@ -1,9 +1,11 @@
+# Este projeto é um fork do [nfephp-org/sped-sintegra](https://github.com/nfephp-org/sped-sintegra), com mudanças na API e melhorias de qualidade de código (typed properties, annotations, validação, etc). 
+
 # sped-sintegra
 
 SINTEGRA, Sistema Integrado de Informações sobre Operações Interestaduais com Mercadorias e Serviços, foi implantado no Brasil através do Convênio ICMS 57/1995 para facilitar o fornecimento de informações dos contribuintes às fiscalizações estaduais, permitindo o controle informatizado das operações de entradas e saídas interestaduais realizadas pelos contribuintes de ICMS.
 
 ![PHP Supported Version][ico-php]
-![Actions](https://github.com/nfephp-org/sped-sintegra/actions/workflows/ci.yml/badge.svg)
+![Actions](https://github.com/guiiamorim/sped-sintegra/actions/workflows/ci.yml/badge.svg)
 [![Latest Stable Version][ico-stable]][link-packagist]
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![License][ico-license]][link-packagist]
@@ -108,34 +110,34 @@ A SEFAZ/SP solicita, na notificação, a entrega mensal de arquivos, isto é, o 
 _E deve ser instalado com:_
 
 ```bash
-composer require nfephp-org/sped-sintegra
+composer require guiiamorim/sped-sintegra
 ```
 
 Ou ainda alterando o composer.json do seu aplicativo inserindo:
 
 ```json
 "require": {
-    "nfephp-org/sped-sintegra" : "^1.0"
+    "guiiamorim/sped-sintegra" : "^1.0"
 }
 ```
 
 _Para utilizar o pacote em desenvolvimento (branch master) deve ser instalado com:_
 
 ```bash
-composer require nfephp-org/sped-sintegra:dev-master
+composer require guiiamorim/sped-sintegra:dev-master
 ```
 
 _Ou ainda alterando o composer.json do seu aplicativo inserindo:_
 
 ```json
 "require": {
-    "nfephp-org/sped-sintegra" : "dev-master"
+    "guiiamorim/sped-sintegra" : "dev-master"
 }
 ```
 
 ## REQUISITOS
 
--   PHP 7.4 ou maior
+-   PHP 8.1 ou maior
 
 ## DOCUMENTAÇÃO
 
@@ -149,7 +151,7 @@ Para contribuir com correções de BUGS, melhoria no código, documentação, el
 
 ## TESTES E FUNCIONALIDADES
 
-Todos os testes são desenvolvidos para operar com o PHPUNIT, e novas funcionalidades devem ser propostas (VIA PR) na branch testing, para depois serem incorporadas ao codigo principal, caso sejam aceitas.
+Todos os testes são desenvolvidos para operar com o Pest, e novas funcionalidades devem ser propostas (VIA PR) na branch testing, para depois serem incorporadas ao codigo principal, caso sejam aceitas.
 
 ## SEGURANÇA
 
@@ -169,21 +171,23 @@ Debora Cristina Fontanella (contributor)
 
 Wendel Ferreira (contributor)
 
+Guilherme Ferreira de Amorim (developer)
+
 ## LICENÇA
 
 Este pacote está diponibilizado sob LGPLv3 ou MIT License (MIT). Leia [Arquivo de Licença](LICENSE.md) para maiores informações.
 
-[ico-php]: https://img.shields.io/packagist/php-v/nfephp-org/sped-sintegra
-[ico-stable]: https://poser.pugx.org/nfephp-org/sped-sintegra/version
-[ico-stars]: https://img.shields.io/github/stars/nfephp-org/sped-sintegra.svg?style=flat-square
-[ico-forks]: https://img.shields.io/github/forks/nfephp-org/sped-sintegra.svg?style=flat-square
-[ico-issues]: https://img.shields.io/github/issues/nfephp-org/sped-sintegra.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/nfephp-org/sped-sintegra.svg?style=flat-square
-[ico-version]: https://img.shields.io/packagist/v/nfephp-org/sped-sintegra.svg?style=flat-square
+[ico-php]: https://img.shields.io/packagist/dependency-v/guiiamorim/sped-sintegra/php
+[ico-stable]: https://poser.pugx.org/guiiamorim/sped-sintegra/version
+[ico-stars]: https://img.shields.io/github/stars/guiiamorim/sped-sintegra.svg?style=flat-square
+[ico-forks]: https://img.shields.io/github/forks/guiiamorim/sped-sintegra.svg?style=flat-square
+[ico-issues]: https://img.shields.io/github/issues/guiiamorim/sped-sintegra.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/guiiamorim/sped-sintegra.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/guiiamorim/sped-sintegra.svg?style=flat-square
 [ico-license]: https://poser.pugx.org/nfephp-org/nfephp/license.svg?style=flat-square
-[link-packagist]: https://packagist.org/packages/nfephp-org/sped-sintegra
-[link-downloads]: https://packagist.org/packages/nfephp-org/sped-sintegra
+[link-packagist]: https://packagist.org/packages/guiiamorim/sped-sintegra
+[link-downloads]: https://packagist.org/packages/guiiamorim/sped-sintegra
 [link-author]: https://github.com/nfephp-org
-[link-issues]: https://github.com/nfephp-org/sped-sintegra/issues
-[link-forks]: https://github.com/nfephp-org/sped-sintegra/network
-[link-stars]: https://github.com/nfephp-org/sped-sintegra/stargazers
+[link-issues]: https://github.com/guiiamorim/sped-sintegra/issues
+[link-forks]: https://github.com/guiiamorim/sped-sintegra/network
+[link-stars]: https://github.com/guiiamorim/sped-sintegra/stargazers

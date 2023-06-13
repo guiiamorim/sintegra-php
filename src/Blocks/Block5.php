@@ -1,21 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
 namespace NFePHP\Sintegra\Blocks;
 
-use NFePHP\Sintegra\Common\Block;
-use NFePHP\Sintegra\Common\BlockInterface;
+use NFePHP\Sintegra\Common\BlockBase;
 use NFePHP\Sintegra\Elements;
 
 /**
@@ -24,17 +30,17 @@ use NFePHP\Sintegra\Elements;
  * Esta classe irá usar um recurso para invocar as classes de cada um dos elementos
  * constituintes listados.
  */
-final class Block5 extends Block implements BlockInterface
+final class Block5 extends BlockBase
 {
     /**
-     * @var array
+     * @var array<string>
      */
-    public $elements = [
-        'z50' => ['class' => Elements\Z50::class, 'level' => 0, 'type' => 'single'],
-        'z51' => ['class' => Elements\Z51::class, 'level' => 0, 'type' => 'single'],
-        'z53' => ['class' => Elements\Z53::class, 'level' => 0, 'type' => 'single'],
-        'z54' => ['class' => Elements\Z54::class, 'level' => 0, 'type' => 'single'],
-        'z55' => ['class' => Elements\Z55::class, 'level' => 0, 'type' => 'single'],
-        'z56' => ['class' => Elements\Z56::class, 'level' => 0, 'type' => 'single'],
+    protected array $allowedTypes = [
+        Elements\Z50::class,
+        Elements\Z51::class,
+        Elements\Z53::class,
+        Elements\Z54::class,
+        Elements\Z55::class,
+        Elements\Z56::class,
     ];
 }

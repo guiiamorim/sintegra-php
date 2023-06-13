@@ -1,14 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
@@ -25,130 +32,122 @@ namespace NFePHP\Sintegra\Elements;
  * favorecida.
  */
 
-use NFePHP\Sintegra\Common\Element;
-use NFePHP\Sintegra\Common\ElementInterface;
-use \stdClass;
+use DateTime;
+use NFePHP\Sintegra\Common\ElementBase;
+use NFePHP\Sintegra\Common\Records;
+use NFePHP\Sintegra\Exceptions\ElementValidation;
+use NFePHP\Sintegra\Formatters as Format;
+use NFePHP\Sintegra\Validation as Validate;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class Z55 extends Element implements ElementInterface
+final class Z55 extends ElementBase
 {
-    const REGISTRO = '55';
+    #[Assert\NotBlank(message: 'O CPF / CNPJ é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpj;
 
-    protected $parameters = [
-        'CNPJ' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => true,
-            'info' => 'CNPJ do remetente nas entradas e dos destinátarios nas saídas',
-            'format' => 'totalNumber',
-            'length' => 14
-        ],
-        'IE' => [
-            'type' => 'string',
-            'regex' => '^ISENTO|[0-9]{2,14}$',
-            'required' => false,
-            'info' => 'Inscrição estadual do remetente nas entradas e do destinatário nas saídas',
-            'format' => '',
-            'length' => 14
-        ],
-        "GNRE_DATA" => [
-            'type' => 'string',
-            'regex' => '^(2[0-9]{3})(0?[1-9]|1[012])(0?[1-9]|[12][0-9]|3[01])$',
-            'required' => true,
-            'info' => 'Data do pagamento do documento de arrecadação',
-            'format' => '',
-            'length' => 8
-        ],
-        'UF_SUBSTITUTO' => [
-            'type' => 'string',
-            'regex' => '^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$',
-            'required' => true,
-            'info' => 'Sigla da unidade da federação do contribuinte substituto tributário',
-            'format' => 'empty',
-            'length' => 2
-        ],
-        'UF_FAVORECIDA' => [
-            'type' => 'string',
-            'regex' => '^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$',
-            'required' => true,
-            'info' => 'Sigla da unidade da federação de destino (favorecida)',
-            'format' => 'empty',
-            'length' => 2
-        ],
-        "GNRE_BANCO" => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,3}$',
-            'required' => true,
-            'info' => 'Banco da GNRE preencher com o código do banco foi recolhida a GNRE',
-            'format' => 'totalNumber',
-            'length' => 3
-        ],
-        "GNRE_AGENCIA" => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{4}$',
-            'required' => true,
-            'info' => 'Banco da GNRE preencher com o código do banco foi recolhida a GNRE',
-            'format' => 'totalNumber',
-            'length' => 4
-        ],
-        "GNRE_NUMERO" => [
-            'type' => 'string',
-            'regex' => '^.{1,20}$',
-            'required' => true,
-            'info' => 'Número de autenticação bancária do documento de arrecadação',
-            'format' => '',
-            'length' => 20
-        ],
-        'VL_TOTAL' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor do GNRE (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        "DATA_VENCIMENTO" => [
-            'type' => 'string',
-            'regex' => '^(2[0-9]{3})(0?[1-9]|1[012])(0?[1-9]|[12][0-9]|3[01])$',
-            'required' => true,
-            'info' => 'Data do vencimento do ICMS substituído',
-            'format' => '',
-            'length' => 8
-        ],
-        "MES_ANO" => [
-            'type' => 'numeric',
-            'regex' => '^(0?[1-9]|1[012])(2[0-9]{3})$',
-            'required' => true,
-            'info' => 'Mês e ano referente à ocorrência do fato gerador, formato MMAAAA',
-            'format' => '',
-            'length' => 6
-        ],
-        "CONVENIO" => [
-            'type' => 'string',
-            'regex' => '^.{1,30}$',
-            'required' => true,
-            'info' => 'Preencher com o conteúdo do campo 15 da GNRE',
-            'format' => '',
-            'length' => 30
-        ],
-    ];
+    #[Assert\NotBlank(message: 'A inscrição estadual não pode ficar em branco, preencha com ISENTO caso o emitente / destinatário não possua.')]
+    #[Assert\Regex('/^ISENTO|[0-9]{0,14}$/', message: 'Formato inválido para a inscrição estadual.')]
+    #[Format\Text(14)]
+    protected string $inscricaoEstadual;
+
+    #[Assert\NotBlank(message: 'A data de pagamento é obrigatória.')]
+    #[Format\Date]
+    protected DateTime|string $dataGnre;
+
+    #[Assert\Regex(
+        '/^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$/',
+        message: 'UF do contribuinte substituto inválido.'
+    )]
+    #[Format\Text(2)]
+    protected string $ufSubstituto;
+
+    #[Assert\Regex(
+        '/^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$/',
+        message: 'UF de destino inválido.'
+    )]
+    #[Format\Text(2)]
+    protected string $ufFavorecido;
+
+    #[Assert\NotBlank(message: 'Código do banco obrigatório.')]
+    #[Assert\Positive(message: 'Código do banco inválido.')]
+    #[Format\Number(3)]
+    protected string $gnreBanco;
+
+    #[Assert\NotBlank(message: 'Agência bancária obrigatória.')]
+    #[Assert\Positive(message: 'Agência bancária inválida.')]
+    #[Format\Number(4)]
+    protected string $gnreAgencia;
+
+    #[Assert\NotBlank(message: 'Número GNRE obrigatório.')]
+    #[Format\Text(20)]
+    protected string $gnreNumero;
+
+    #[Assert\NotBlank(message: 'Valor total do GNRE obrigatório.')]
+    #[Format\Number(13, 2)]
+    protected string $valorTotal;
+
+    #[Assert\NotBlank(message: 'A data de vencimento do ICMS é obrigatória.')]
+    #[Format\Date]
+    protected DateTime|string $dataIcms;
+
+    #[Assert\NotBlank(message: 'O mês e ano da ocorrência é obrigatório.')]
+    #[Format\Date('mY')]
+    protected DateTime|string $mesAno;
+
+    #[Assert\NotBlank(message: 'Convênio GNRE obrigatório.')]
+    #[Format\Text(30)]
+    protected string $convenio;
 
     /**
      * Constructor
-     * @param \stdClass $std
+     *
+     * @param string $cnpj CNPJ do remetente nas entradas e dos destinátarios nas saídas
+     * @param DateTime $dataGnre Data do pagamento do documento de arrecadação
+     * @param string $ufSubstituto Sigla da unidade da federação do contribuinte substituto tributário
+     * @param string $ufFavorecido Sigla da unidade da federação de destino (favorecida)
+     * @param int $gnreBanco Banco da GNRE. Preencher com o código do banco onde foi recolhida a GNRE
+     * @param int $gnreAgencia Agência onde foi efetuado o recolhimento
+     * @param string $gnreNumero Número de autenticação bancária do documento de arrecadação
+     * @param string $valorTotal Valor do GNRE (com 2 decimais)
+     * @param DateTime $dataIcms Data do vencimento do ICMS substituído
+     * @param DateTime $mesAno Mês e ano referente à ocorrência do fato gerador, formato AAAA-MM
+     * @param string $convenio Preencher com o conteúdo do campo 15 da GNRE
+     * @param string $inscricaoEstadual Inscrição estadual do remetente nas entradas e do destinatário nas saídas
+     *
+     * @throws ElementValidation
      */
-    public function __construct(\stdClass $std)
-    {
-        parent::__construct(self::REGISTRO);
-        $this->std = $this->standarize($std);
-        $this->postValidation();
-    }
-    
-    /**
-     * Validação secundária sobre as data informadas
-     * @throws \Exception
-     */
-    public function postValidation()
-    {
-        $this->validDoc($this->std->cnpj, 'CNPJ');
+    public function __construct(
+        string $cnpj,
+        DateTime $dataGnre,
+        string $ufSubstituto,
+        string $ufFavorecido,
+        int $gnreBanco,
+        int $gnreAgencia,
+        string $gnreNumero,
+        string $valorTotal,
+        DateTime $dataIcms,
+        DateTime $mesAno,
+        string $convenio,
+        string $inscricaoEstadual = 'ISENTO',
+    ) {
+        parent::__construct(Records::REGISTRO_55);
+
+        $this->cnpj = $cnpj;
+        $this->inscricaoEstadual = $inscricaoEstadual;
+        $this->dataGnre = $dataGnre;
+        $this->ufSubstituto = $ufSubstituto;
+        $this->ufFavorecido = $ufFavorecido;
+        $this->gnreBanco = (string) $gnreBanco;
+        $this->gnreAgencia = (string) $gnreAgencia;
+        $this->gnreNumero = $gnreNumero;
+        $this->valorTotal = $valorTotal;
+        $this->dataIcms = $dataIcms;
+        $this->mesAno = $mesAno;
+        $this->convenio = $convenio;
+
+        $this->validate();
+        $this->format();
     }
 }

@@ -1,14 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
@@ -18,141 +25,164 @@ namespace NFePHP\Sintegra\Elements;
  *  Operações com veículos automotores novos
  */
 
-use NFePHP\Sintegra\Common\Element;
-use NFePHP\Sintegra\Common\ElementInterface;
-use \stdClass;
+use NFePHP\Sintegra\Common\ElementBase;
+use NFePHP\Sintegra\Common\Records;
+use NFePHP\Sintegra\Exceptions\ElementValidation;
+use NFePHP\Sintegra\Formatters as Format;
+use NFePHP\Sintegra\Validation as Validate;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class Z56 extends Element implements ElementInterface
+final class Z56 extends ElementBase
 {
-    const REGISTRO = '56';
+    #[Assert\NotBlank(message: 'O CPF / CNPJ é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpj;
 
-    protected $parameters = [
-        'CNPJ' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => true,
-            'info' => 'CNPJ do remetente nas entradas e dos destinátarios nas saídas',
-            'format' => 'totalNumber',
-            'length' => 14
+    #[Assert\NotBlank(message: 'O modelo da nota fiscal é obrigatório.')]
+    #[Assert\Choice(
+        choices: [
+            '01', //01 - Nota Fiscal, modelo 1
+            '02', //02 - Nota Fiscal de Venda a Consumidor, modelo 02
+            '03', //03 - Nota Fiscal de Entrada, modelo 3
+            '04', //04 - Nota Fiscal de Produtor, modelo 4
+            '06', //06 - Nota Fiscal/Conta de Energia Elétrica, modelo 6
+            '07', //07 - Nota Fiscal de Serviço de Transporte, modelo 7
+            '08', //08 - Conhecimento de Transporte Rodoviário de Cargas, modelo 8
+            '09', //09 - Conhecimento de Transporte Aquaviário de Cargas, modelo 9
+            '10', //10 - Conhecimento Aéreo, modelo 10
+            '11', //11 - Conhecimento de Transporte Ferroviário de Cargas, modelo 11
+            '13', //13 - Bilhete de Passagem Rodoviário, modelo 13
+            '14', //14 - Bilhete de Passagem Aquaviário, modelo 14
+            '15', //15 - Bilhete de Passagem e Nota de Bagagem, modelo 15
+            '16', //16 - Bilhete de Passagem Ferroviário, modelo 16
+            '17', //17 - Despacho de Transporte, modelo 17
+            '18', //18 - Resumo Movimento Diário, modelo 18
+            '20', //20 - Ordem de Coleta de Carga, modelo 20
+            '21', //21 - Nota Fiscal de Serviço de Comunicação, modelo 21
+            '22', //22 - Nota Fiscal de Serviço de Telecomunicações, modelo 22
+            '24', //24 - Autorização de Carregamento e Transporte, modelo 24
+            '25', //25 - Manifesto de Carga, modelo 25
+            '26', //26 - Conhecimento de Transporte Multimodal de Cargas, modelo 26
+            '27', //27 - Nota Fiscal de Serviço de Transporte Ferroviário, modelo 27
+            '55', //55 - Nota Fiscal Eletrônica, modelo 55
+            '57', //57 - Conhecimento de Transporte Eletrônico, modelo 57
+            '60', //60 - Cupom Fiscal Eletrônico, CF-e- ECF, modelo 60
+            '63', //63 - Bilhete de Passagem Eletrônico, modelo 63
+            '65', //65 - Nota Fiscal de Consumidor Eletrônica, modelo 65
+            '66', //66 - NOta Fiscal Energia Eletrica Eletrônica, modelo 66
+            '67', //67 - Conhecimento de Transporte Eletrônico para Outros Serviços, modelo 67
         ],
-        'COD_MOD' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{2}$',
-            'required' => true,
-            'info' => 'Código do modelo da nota fiscal',
-            'format' => 'totalNumber',
-            'length' => 2
+        message: 'Modelo da nota fiscal inválido.',
+    )]
+    protected string $codigoModelo;
+
+    #[Assert\NotBlank(message: 'A série do documento fiscal é obrigatória.')]
+    #[Assert\Regex('/^\d{1,3}$/', message: 'A série do documento fiscal deve ter no mínimo 1 dígito e no máximo 3.')]
+    #[Format\Text(3)]
+    protected string $serie;
+
+    #[Assert\NotBlank(message: 'O número do documento fiscal é obrigatório.')]
+    #[Assert\Regex('/^\d{1,6}$/', message: 'O número do documento fiscal deve ter no mínimo 1 dígito e no máximo 6.')]
+    #[Format\Number(6)]
+    protected string $numeroDocumento;
+
+    #[Assert\NotBlank(message: 'O CFOP é obrigatório.')]
+    #[Assert\Regex('/^[1,2,3,5,6,7]{1}[0-9]{3}$/', message: 'CFOP inválido.')]
+    protected string $cfop;
+
+    #[Assert\NotBlank(message: 'O Código da Situação Tributária é obrigatório.')]
+    #[Assert\Regex('/^.{1,3}$/', message: 'CST inválido.')]
+    #[Format\Number(3)]
+    protected string $cst;
+
+    #[Assert\NotBlank(message: 'A ordem do item na nota é obrigatória.')]
+    #[Assert\Positive(message: 'A ordem do item deve ser maior que 0.')]
+    #[Format\Number(3)]
+    protected string $numeroItem;
+
+    #[Assert\NotBlank(message: 'O código do produto é obrigatório.')]
+    #[Format\Text(14)]
+    protected string $codigoProduto;
+
+    #[Assert\NotBlank(message: 'O tipo de operação é obrigatório.')]
+    #[Assert\Choice(
+        choices: [
+            '1', //1 - Venda para concessionária
+            '2', //2 - "Faturamento Direto" - Convênio ICMS 51/00
+            '3', //3 - Venda direta
         ],
-        'SERIE' => [
-            'type' => 'string',
-            'regex' => '^[0-9]{1,3}$',
-            'required' => true,
-            'info' => 'Série do documento fiscal',
-            'format' => '',
-            'length' => 3
-        ],
-        'NUM_DOC' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,6}$',
-            'required' => true,
-            'info' => 'Número do documento fiscal',
-            'format' => 'totalNumber',
-            'length' => 6
-        ],
-        'CFOP' => [
-            'type' => 'numeric',
-            'regex' => "^[1,2,3,5,6,7]{1}[0-9]{3}$",
-            'required' => true,
-            'info' => 'Código Fiscal de Operação e Prestação',
-            'format' => '',
-            'length' => 4
-        ],
-        'CST' => [
-            'type' => 'string',
-            'regex' => '^.{1,3}$',
-            'required' => true,
-            'info' => 'Código da Situação Tributária',
-            'format' => 'empty',
-            'length' => 3
-        ],
-        'NUMERO_ITEM' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,3}$',
-            'required' => true,
-            'info' => 'Número de ordem do item na nota fiscal',
-            'format' => 'totalNumber',
-            'length' => 3
-        ],
-        'CODIGO_PRODUTO' => [
-            'type' => 'string',
-            'regex' => '^.{1,14}$',
-            'required' => true,
-            'info' => 'Código do produto ou serviço do informante',
-            'format' => 'empty',
-            'length' => 14
-        ],
-        'TIPO_OPERACAO' => [
-            'type' => 'string',
-            'regex' => '^(1|2|3)$',
-            'required' => true,
-            'info' => 'Tipo de operação ('
-            . '1 - venda para concessionária; '
-            . '2- "Faturamento Direto" - Convênio ICMS 51/00; '
-            . '3 - Venda direta)',
-            'format' => '',
-            'length' => 1
-        ],
-        'CNPJ_CONCESSIONARIA' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => true,
-            'info' => 'CNPJ da concessionária',
-            'format' => 'totalNumber',
-            'length' => 14
-        ],
-        'ALIQUOTA_IPI' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Alíquota do IPI (com 2 decimais)',
-            'format' => '2v2',
-            'length' => 4
-        ],
-        'CHASSI' => [
-            'type' => 'string',
-            'regex' => '^.{5,17}$',
-            'required' => true,
-            'info' => 'Código do chassi do veículo',
-            'format' => 'empty',
-            'length' => 17
-        ],
-        'BRANCOS' => [
-            'type' => 'string',
-            'regex' => '',
-            'required' => false,
-            'info' => 'Brancos',
-            'format' => 'empty',
-            'length' => 39
-        ]
-    ];
+        message: 'Tipo de operação inválido.',
+    )]
+    protected string $tipoOperacao;
+
+    #[Assert\NotBlank(message: 'O CPF / CNPJ da concessionária é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpjConcessionaria;
+
+    #[Assert\NotBlank(message: 'A alíquota do IPI é obrigatória.')]
+    #[Format\Number(4, 2)]
+    protected string $aliquotaIPI;
+
+    #[Assert\Regex('/^.{5,17}$/', message: 'Chassi inválido.')]
+    #[Format\Text(17)]
+    protected string $chassi;
+
+    #[Format\Text(39)]
+    protected ?string $brancos = null;
 
     /**
      * Constructor
-     * @param \stdClass $std
+     *
+     * @param string $cnpj CNPJ do remetente nas entradas e dos destinátarios nas saídas
+     * @param string $codigoModelo Código do modelo da nota fiscal
+     * @param string $serie Série do documento fiscal
+     * @param int $numeroDocumento Número do documento fiscal
+     * @param int $cfop Código Fiscal de Operação e Prestação
+     * @param string $cst Código da Situação Tributária
+     * @param int $numeroItem Número de ordem do item na nota fiscal
+     * @param string $codigoProduto Código do produto ou serviço do informante
+     * @param int $tipoOperacao Tipo de operação
+     * 1 - venda para concessionária
+     * 2- "Faturamento Direto" - Convênio ICMS 51/00
+     * 3 - Venda direta
+     * @param string $cnpjConcessionaria CNPJ da concessionária
+     * @param float $aliquotaIPI Alíquota do IPI
+     * @param string $chassi Código do chassi do veículo
+     *
+     * @throws ElementValidation
      */
-    public function __construct(\stdClass $std)
-    {
-        parent::__construct(self::REGISTRO);
-        $this->std = $this->standarize($std);
-        $this->postValidation();
-    }
-    
-    /**
-     * Validação secundária sobre as data informadas
-     * @throws \Exception
-     */
-    public function postValidation()
-    {
-        $this->validDoc($this->std->cnpj, 'CNPJ');
+    public function __construct(
+        string $cnpj,
+        string $codigoModelo,
+        string $serie,
+        int $numeroDocumento,
+        int $cfop,
+        string $cst,
+        int $numeroItem,
+        string $codigoProduto,
+        int $tipoOperacao,
+        string $cnpjConcessionaria,
+        float $aliquotaIPI,
+        string $chassi,
+    ) {
+        parent::__construct(Records::REGISTRO_56);
+
+        $this->cnpj = $cnpj;
+        $this->codigoModelo = $codigoModelo;
+        $this->serie = $serie;
+        $this->numeroDocumento = (string) $numeroDocumento;
+        $this->cfop = (string) $cfop;
+        $this->cst = $cst;
+        $this->numeroItem = (string) $numeroItem;
+        $this->codigoProduto = $codigoProduto;
+        $this->tipoOperacao = (string) $tipoOperacao;
+        $this->cnpjConcessionaria = $cnpjConcessionaria;
+        $this->aliquotaIPI = (string) $aliquotaIPI;
+        $this->chassi = $chassi;
+
+        $this->validate();
+        $this->format();
     }
 }

@@ -2,48 +2,43 @@
 
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
-require_once '../bootstrap.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
 
 use NFePHP\Sintegra\Blocks\Block1;
+use NFePHP\Sintegra\Elements\Z10;
+use NFePHP\Sintegra\Elements\Z11;
 
 try {
     $b1 = new Block1();
-
-    $std = new \stdClass();
-    $std->cNPJ = '77774523000110';
-    $std->IE = null;
-    $std->NOME_CONTRIBUINTE = 'FULANO DE TAL LTDA';
-    $std->MUNICIPIO = 'BREJO SECO';
-    $std->UF = 'MA';
-    $std->FAX = null;
-    $std->DT_INI = '20210101';
-    $std->DT_FIM = '20210131';
-    $std->COGIGO_MAGNETICO = '1';
-    $std->COGIGO_NATUREZAS = '3';
-    $std->COGIGO_FINALIDADE = '1';
-    $b1->z10($std);
-
-    $std = new \stdClass();
-    $std->LOGRADOURO = 'RUA DO OUVIDOR';
-    $std->NUMERO = '100';
-    $std->COMPLEMENTO = null;
-    $std->BAIRRO = '';
-    $std->CEP = '12345678';
-    $std->CONTATO = 'FULANO DE TAL';
-    $std->TELEFONE = '5555555';
-    $b1->z11($std);
-
-    $txt = $b1->get();
+    $b1
+        ->addElement(
+            new Z10(
+                '50795722052',
+                '126199884',
+                'FULANO DE TAL LTDA',
+                'BREJO SECO',
+                'MA',
+                new \DateTime('2023-05-01'),
+                new \DateTime('2023-05-31'),
+                3,
+                3,
+                1,
+            )
+        )
+        ->addElement(
+            new Z11(
+                '3335221245',
+                'RUA DO OUVIDOR',
+                '12345-678',
+                '100',
+                contato: 'FULANO DE TAL',
+            )
+        );
 
     header("Content-Type: text/plain");
-    echo $txt;
+    echo $b1;
 
-    //caso existam erros eles estarão na propriedade ARRAY publica errors
-    if (!empty($elem->errors)) {
-        echo "\n";
-        echo "\n";
-        print_r($b1->errors);
-    }
-} catch (\Exception $e) {
+} catch (\NFePHP\Sintegra\Exceptions\ElementValidation $e) {
     echo $e->getMessage();
+    dump($e->errors);
 }

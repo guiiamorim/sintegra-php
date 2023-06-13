@@ -1,14 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
@@ -18,156 +25,188 @@ namespace NFePHP\Sintegra\Elements;
  * Nota fiscal de serviço de transporte
  */
 
-use NFePHP\Sintegra\Common\Element;
-use NFePHP\Sintegra\Common\ElementInterface;
+use DateTime;
+use NFePHP\Sintegra\Common\ElementBase;
+use NFePHP\Sintegra\Common\Records;
+use NFePHP\Sintegra\Exceptions\ElementValidation;
+use NFePHP\Sintegra\Formatters as Format;
+use NFePHP\Sintegra\Validation as Validate;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class Z70 extends Element implements ElementInterface
+final class Z70 extends ElementBase
 {
-    const REGISTRO = '70';
+    #[Assert\NotBlank(message: 'O CPF / CNPJ é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpj;
 
-    protected $parameters = [
-        'CNPJ' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => true,
-            'info' => 'CNPJ do emitente nas entradas e dos destinátarios nas saídas',
-            'format' => 'totalNumber',
-            'length' => 14
+    #[Assert\NotBlank(message: 'A inscrição estadual não pode ficar em branco, preencha com ISENTO caso o emitente / destinatário não possua.')]
+    #[Assert\Regex('/^ISENTO|[0-9]{0,14}$/', message: 'Formato inválido para a inscrição estadual.')]
+    #[Format\Text(14)]
+    protected string $inscricaoEstadual;
+
+    #[Assert\NotBlank(message: 'A data de emissão / recebimento é obrigatória.')]
+    #[Format\Date]
+    protected DateTime|string $dataEmissao;
+
+    #[Assert\NotBlank(message: 'A unidade federativa é obrigatória.')]
+    #[Assert\Regex(
+        '/^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$/',
+        message: 'Unidade federativa inválida.'
+    )]
+    #[Format\Text(2)]
+    protected string $uf;
+
+    #[Assert\NotBlank(message: 'O modelo da nota fiscal é obrigatório.')]
+    #[Assert\Choice(
+        choices: [
+            '01', //01 - Nota Fiscal, modelo 1
+            '02', //02 - Nota Fiscal de Venda a Consumidor, modelo 02
+            '03', //03 - Nota Fiscal de Entrada, modelo 3
+            '04', //04 - Nota Fiscal de Produtor, modelo 4
+            '06', //06 - Nota Fiscal/Conta de Energia Elétrica, modelo 6
+            '07', //07 - Nota Fiscal de Serviço de Transporte, modelo 7
+            '08', //08 - Conhecimento de Transporte Rodoviário de Cargas, modelo 8
+            '09', //09 - Conhecimento de Transporte Aquaviário de Cargas, modelo 9
+            '10', //10 - Conhecimento Aéreo, modelo 10
+            '11', //11 - Conhecimento de Transporte Ferroviário de Cargas, modelo 11
+            '13', //13 - Bilhete de Passagem Rodoviário, modelo 13
+            '14', //14 - Bilhete de Passagem Aquaviário, modelo 14
+            '15', //15 - Bilhete de Passagem e Nota de Bagagem, modelo 15
+            '16', //16 - Bilhete de Passagem Ferroviário, modelo 16
+            '17', //17 - Despacho de Transporte, modelo 17
+            '18', //18 - Resumo Movimento Diário, modelo 18
+            '20', //20 - Ordem de Coleta de Carga, modelo 20
+            '21', //21 - Nota Fiscal de Serviço de Comunicação, modelo 21
+            '22', //22 - Nota Fiscal de Serviço de Telecomunicações, modelo 22
+            '24', //24 - Autorização de Carregamento e Transporte, modelo 24
+            '25', //25 - Manifesto de Carga, modelo 25
+            '26', //26 - Conhecimento de Transporte Multimodal de Cargas, modelo 26
+            '27', //27 - Nota Fiscal de Serviço de Transporte Ferroviário, modelo 27
+            '55', //55 - Nota Fiscal Eletrônica, modelo 55
+            '57', //57 - Conhecimento de Transporte Eletrônico, modelo 57
+            '60', //60 - Cupom Fiscal Eletrônico, CF-e- ECF, modelo 60
+            '63', //63 - Bilhete de Passagem Eletrônico, modelo 63
+            '65', //65 - Nota Fiscal de Consumidor Eletrônica, modelo 65
+            '66', //66 - NOta Fiscal Energia Eletrica Eletrônica, modelo 66
+            '67', //67 - Conhecimento de Transporte Eletrônico para Outros Serviços, modelo 67
         ],
-        'IE' => [
-            'type' => 'string',
-            'regex' => '^ISENTO|[0-9]{2,14}$',
-            'required' => false,
-            'info' => 'Inscrição estadual do emitente nas entradas e do destinatário nas saídas',
-            'format' => '',
-            'length' => 14
-        ],
-        'DATA_EMISSAO' => [
-            'type' => 'string',
-            'regex' => '^(2[0-9]{3})(0?[1-9]|1[012])(0?[1-9]|[12][0-9]|3[01])$',
-            'required' => true,
-            'info' => 'Data de emissão na saída ou de recebimento na entrada',
-            'format' => '',
-            'length' => 8
-        ],
-        'UF' => [
-            'type' => 'string',
-            'regex' => '^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO|EX)$',
-            'required' => true,
-            'info' => 'Sigla da Unidade da Federação do emitente',
-            'format' => 'empty',
-            'length' => 2
-        ],
-        'COD_MOD' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{2}$',
-            'required' => true,
-            'info' => 'Código do modelo da nota fiscal',
-            'format' => 'totalNumber',
-            'length' => 2
-        ],
-        'SERIE' => [
-            'type' => 'string',
-            'regex' => '^[0-9]{1}$',
-            'required' => true,
-            'info' => 'Série do documento fiscal',
-            'format' => '',
-            'length' => 1
-        ],
-        'SUB_SERIE' => [
-            'type' => 'string',
-            'regex' => '^.{1,2}$',
-            'required' => false,
-            'info' => 'Série do documento fiscal',
-            'format' => 'empty',
-            'length' => 2
-        ],
-        'NUM_DOC' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,6}$',
-            'required' => true,
-            'info' => 'Número do documento fiscal',
-            'format' => 'totalNumber',
-            'length' => 6
-        ],
-        'CFOP' => [
-            'type' => 'numeric',
-            'regex' => "^[1,2,3,5,6,7]{1}[0-9]{3}$",
-            'required' => true,
-            'info' => 'Código Fiscal de Operação e Prestação',
-            'format' => '',
-            'length' => 4
-        ],
-        'VL_TOTAL' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor total da nota fiscal (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        'VL_BC_ICMS' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Base de Cálculo do ICMS (com 2 decimais)',
-            'format' => '12v2',
-            'length' => 14
-        ],
-        'VL_ICMS' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Montante do imposto (com 2 decimais)',
-            'format' => '12v2',
-            'length' => 14
-        ],
-        'ISENTA_NTRIBUTADA' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor amparado por isenção ou não incidência (com 2 decimais)',
-            'format' => '12v2',
-            'length' => 14
-        ],
-        'OUTRAS' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor que não confira débito ou crédito do ICMS (com 2 decimais)',
-            'format' => '12v2',
-            'length' => 14
-        ],
-        'MOD_FRETE' => [
-            'type' => 'string',
-            'regex' => '^(0|1|2)$',
-            'required' => true,
-            'info' => 'Modalidade do frete (1 – CIF; 2 – FOB; 0 - OUTROS)',
-            'format' => '',
-            'length' => 1
-        ],
-        'SITUACAO' => [
-            'type' => 'string',
-            'regex' => '^(S|N|E|X|2|4)$',
-            'required' => true,
-            'info' => 'Situação do documento fiscal (N - Documento Fiscal Normal;'
-            . ' S - Documento Fiscal Cancelado; E - Lançamento Extemporâneo de '
-            . 'Documento Fiscal Normal; X - Lançamento Extemporâneo de Documento '
-            . 'Fiscal Cancelado; 2 - Documento com USO DENEGADO; 4 - Documento '
-            . 'com USO inutilizado)',
-            'format' => '',
-            'length' => 1
-        ],
-    ];
+        message: 'Modelo da nota fiscal inválido.',
+    )]
+    protected string $codigoModelo;
+
+    #[Assert\NotBlank(message: 'A série do documento fiscal é obrigatória.')]
+    #[Assert\Regex('/^\d{1}$/', message: 'A série do documento fiscal deve ter somente 1 dígito.')]
+    protected string $serie;
+
+    #[Assert\Regex('/^.{1,2}$/', message: 'A subsérie do documento fiscal deve ter no mínimo 1 dígito e no máximo 2.')]
+    #[Format\Text(2)]
+    protected ?string $subserie;
+
+    #[Assert\NotBlank(message: 'O número do documento fiscal é obrigatório.')]
+    #[Assert\Regex('/^\d{1,6}$/', message: 'O número do documento fiscal deve ter no mínimo 1 dígito e no máximo 6.')]
+    #[Format\Number(6)]
+    protected string $numeroDocumento;
+
+    #[Assert\NotBlank(message: 'O CFOP é obrigatório.')]
+    #[Assert\Regex('/^[1,2,3,5,6,7]{1}[0-9]{3}$/', message: 'CFOP inválido.')]
+    protected string $cfop;
+
+    #[Assert\NotBlank(message: 'O valor total do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor do documento não pode ser negativo.')]
+    #[Format\Number(13, 2)]
+    protected string $valorTotal;
+
+    #[Assert\NotBlank(message: 'A base de cálculo do ICMS do documento fiscal é obrigatória.')]
+    #[Assert\PositiveOrZero(message: 'A base de cálculo do ICMS do documento não pode ser negativo.')]
+    #[Format\Number(14, 2)]
+    protected string $baseIcms;
+
+    #[Assert\NotBlank(message: 'O valor do ICMS do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor do ICMS do documento não pode ser negativo.')]
+    #[Format\Number(14, 2)]
+    protected string $valorIcms;
+
+    #[Assert\NotBlank(message: 'O valor de isenção do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor de isenção do documento não pode ser negativo.')]
+    #[Format\Number(14, 2)]
+    protected string $valorIsencao;
+
+    #[Format\Number(14, 2)]
+    protected string $outrosValores;
+
+    #[Assert\NotBlank(message: 'A situação do documento fiscal é obrigatória.')]
+    #[Assert\Choice(choices: ['0', '1', '2'], message: 'Opção inválida para situação do documento.')]
+    protected string $modalidadeFrete;
+
+    #[Assert\NotBlank(message: 'A situação do documento fiscal é obrigatória.')]
+    #[Assert\Choice(choices: ['S', 'N', 'E', 'X', '2', '4'], message: 'Opção inválida para situação do documento.')]
+    protected string $situacao;
 
     /**
-     * Constructor
-     * @param \stdClass $std
+     * @param string $cnpj CNPJ do emitente nas entradas e dos destinátarios nas saídas
+     * @param DateTime $dataEmissao Data de emissão na saída ou de recebimento na entrada
+     * @param string $uf Sigla da Unidade da Federação do emitente
+     * @param string $codigoModelo Código do modelo da nota fiscal
+     * @param string $serie Série do documento fiscal
+     * @param string $numeroDocumento Número do documento fiscal
+     * @param string $cfop Código Fiscal de Operação e Prestação
+     * @param float $valorTotal Valor total da nota fiscal (com 2 decimais)
+     * @param float $baseIcms Base de Cálculo do ICMS (com 2 decimais)
+     * @param float $valorIcms Montante do imposto (com 2 decimais)
+     * @param float $valorIsencao Valor amparado por isenção ou não incidência (com 2 decimais)
+     * @param int $modalidadeFrete Modalidade do frete (1 – CIF; 2 – FOB; 0 - OUTROS)
+     * @param string $situacao Situação do documento fiscal
+     * N - Documento Fiscal Normal;
+     * S - Documento Fiscal Cancelado;
+     * E - Lançamento Extemporâneo de Documento Fiscal Normal;
+     * X - Lançamento Extemporâneo de Documento Fiscal Cancelado;
+     * 2 - Documento com USO DENEGADO;
+     * 4 - Documento com USO inutilizado
+     * @param string $inscricaoEstadual Inscrição estadual do emitente nas entradas e do destinatário nas saídas
+     * @param string|null $subserie Subsérie do documento fiscal
+     * @param float $outrosValores Valor que não confira débito ou crédito do ICMS (com 2 decimais)
+     *
+     * @throws ElementValidation
      */
-    public function __construct(\stdClass $std)
-    {
-        parent::__construct(self::REGISTRO);
-        $this->std = $this->standarize($std);
-        $this->postValidation();
+    public function __construct(
+        string $cnpj,
+        DateTime $dataEmissao,
+        string $uf,
+        string $codigoModelo,
+        string $serie,
+        string $numeroDocumento,
+        string $cfop,
+        float $valorTotal,
+        float $baseIcms,
+        float $valorIcms,
+        float $valorIsencao,
+        int $modalidadeFrete,
+        string $situacao,
+        string $inscricaoEstadual = 'ISENTO',
+        ?string $subserie = null,
+        float $outrosValores = 0.00,
+    ) {
+        parent::__construct(Records::REGISTRO_70);
+
+        $this->cnpj = $cnpj;
+        $this->inscricaoEstadual = $inscricaoEstadual;
+        $this->dataEmissao = $dataEmissao;
+        $this->uf = $uf;
+        $this->codigoModelo = $codigoModelo;
+        $this->serie = $serie;
+        $this->subserie = $subserie;
+        $this->numeroDocumento = $numeroDocumento;
+        $this->cfop = $cfop;
+        $this->valorTotal = (string) $valorTotal;
+        $this->baseIcms = (string) $baseIcms;
+        $this->valorIcms = (string) $valorIcms;
+        $this->valorIsencao = (string) $valorIsencao;
+        $this->outrosValores = (string) $outrosValores;
+        $this->modalidadeFrete = (string) $modalidadeFrete;
+        $this->situacao = $situacao;
+
+        $this->validate();
+        $this->format();
     }
 }

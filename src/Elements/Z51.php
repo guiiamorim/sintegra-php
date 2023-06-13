@@ -1,14 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file belongs to the NFePHP project
  * php version 7.0 or higher
  *
  * @category  Library
+ *
  * @package   NFePHP\Sintegra
+ *
  * @copyright 2019 NFePHP Copyright (c)
+ *
  * @license   https://opensource.org/licenses/MIT MIT
+ *
  * @author    Roberto L. Machado <linux.rlm@gmail.com>
+ *
  * @link      http://github.com/nfephp-org/sped-sintegra
  */
 
@@ -32,144 +39,131 @@ namespace NFePHP\Sintegra\Elements;
  * total e a mesma situação.
  */
 
-use NFePHP\Sintegra\Common\Element;
-use NFePHP\Sintegra\Common\ElementInterface;
-use \stdClass;
+use DateTime;
+use NFePHP\Sintegra\Common\ElementBase;
+use NFePHP\Sintegra\Common\Records;
+use NFePHP\Sintegra\Exceptions\ElementValidation;
+use NFePHP\Sintegra\Formatters as Format;
+use NFePHP\Sintegra\Validation as Validate;
+use Symfony\Component\Validator\Constraints as Assert;
 
-class Z51 extends Element implements ElementInterface
+final class Z51 extends ElementBase
 {
-    const REGISTRO = '51';
+    #[Assert\NotBlank(message: 'O CPF / CNPJ é obrigatório.')]
+    #[Validate\CpfCnpj]
+    #[Format\Number(14)]
+    protected string $cnpj;
 
-    protected $parameters = [
-        'CNPJ' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{11,14}$',
-            'required' => false,
-            'info' => 'CNPJ do remetente nas entradas e dos destinátarios nas saídas',
-            'format' => 'totalNumber',
-            'length' => 14
-        ],
-        'IE' => [
-            'type' => 'string',
-            'regex' => '^ISENTO|[0-9]{2,14}$',
-            'required' => false,
-            'info' => 'Inscrição estadual do remetente nas entradas e do destinatário nas saídas',
-            'format' => '',
-            'length' => 14
-        ],
-        'DATA_EMISSAO' => [
-            'type' => 'string',
-            'regex' => '^(2[0-9]{3})(0?[1-9]|1[012])(0?[1-9]|[12][0-9]|3[01])$',
-            'required' => true,
-            'info' => 'Data de emissão na saída ou de recebimento na entrada',
-            'format' => '',
-            'length' => 8
-        ],
-        'UF' => [
-            'type' => 'string',
-            'regex' => '^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO|EX)$',
-            'required' => true,
-            'info' => 'Sigla da Unidade da Federação do remetente',
-            'format' => '',
-            'length' => 2
-        ],
-        'SERIE' => [
-            'type' => 'string',
-            'regex' => '^[0-9]{1,3}$',
-            'required' => true,
-            'info' => 'Série do documento fiscal',
-            'format' => '',
-            'length' => 3
-        ],
-        'NUM_DOC' => [
-            'type' => 'numeric',
-            'regex' => '^[0-9]{1,6}$',
-            'required' => true,
-            'info' => 'Número do documento fiscal',
-            'format' => 'totalNumber',
-            'length' => 6
-        ],
-        'CFOP' => [
-            'type' => 'numeric',
-            'regex' => "^[1,2,3,5,6,7]{1}[0-9]{3}$",
-            'required' => true,
-            'info' => 'Código Fiscal de Operação e Prestação',
-            'format' => '',
-            'length' => 4
-        ],
-        'VL_TOTAL' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor total da nota fiscal (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        'VL_TOTAL_IPI' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Montante do IPI (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        'ISENTA_NTRIBUTADA' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => true,
-            'info' => 'Valor amparado por isenção ou não incidência do IPI (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        'OUTRAS' => [
-            'type' => 'numeric',
-            'regex' => '^\d+(\.\d*)?|\.\d+$',
-            'required' => false,
-            'info' => 'Valor que não confira débito ou crédito do ICMS (com 2 decimais)',
-            'format' => '11v2',
-            'length' => 13
-        ],
-        'BRANCOS' => [
-            'type' => 'string',
-            'regex' => '',
-            'required' => false,
-            'info' => 'Brancos',
-            'format' => 'empty',
-            'length' => 20
-        ],
-        'SITUACAO' => [
-            'type' => 'string',
-            'regex' => '^(S|N|E|X|2|4)$',
-            'required' => true,
-            'info' => 'Situação da Nota fiscal ('
-            . 'N - Documento Fiscal Normal; '
-            . 'S - Documento Fiscal Cancelado; '
-            . 'E - Lançamento Extemporâneo de Documento Fiscal Normal; '
-            . 'X - Lançamento Extemporâneo de Documento Fiscal Cancelado; '
-            . '2 - Documento com USO DENEGADO; '
-            . '4 - Documento com USO inutilizado)',
-            'format' => '',
-            'length' => 1
-        ]
-    ];
+    #[Assert\NotBlank(message: 'A inscrição estadual não pode ficar em branco, preencha com ISENTO caso o emitente / destinatário não possua.')]
+    #[Assert\Regex('/^ISENTO|[0-9]{0,14}$/', message: 'Formato inválido para a inscrição estadual.')]
+    #[Format\Text(14)]
+    protected string $inscricaoEstadual;
+
+    #[Assert\NotBlank(message: 'A data de emissão / recebimento é obrigatória.')]
+    #[Format\Date]
+    protected DateTime|string $dataEmissao;
+
+    #[Assert\NotBlank(message: 'A unidade federativa é obrigatória.')]
+    #[Assert\Regex(
+        '/^(AC|AL|AM|AP|BA|CE|DF|ES|GO|MA|MG|MS|MT|PA|PB|PE|PI|PR|RJ|RN|RO|RR|RS|SC|SE|SP|TO)$/',
+        message: 'Unidade federativa inválida.'
+    )]
+    #[Format\Text(2)]
+    protected string $uf;
+
+    #[Assert\NotBlank(message: 'A série do documento fiscal é obrigatória.')]
+    #[Assert\Regex('/^\d{1,3}$/', message: 'A série do documento fiscal deve ter no mínimo 1 dígito e no máximo 3.')]
+    #[Format\Text(3)]
+    protected string $serie;
+
+    #[Assert\NotBlank(message: 'O número do documento fiscal é obrigatório.')]
+    #[Assert\Regex('/^\d{1,6}$/', message: 'O número do documento fiscal deve ter no mínimo 1 dígito e no máximo 6.')]
+    #[Format\Number(6)]
+    protected string $numeroDocumento;
+
+    #[Assert\NotBlank(message: 'O CFOP é obrigatório.')]
+    #[Assert\Regex('/^[1,2,3,5,6,7]{1}[0-9]{3}$/', message: 'CFOP inválido.')]
+    protected string $cfop;
+
+    #[Assert\NotBlank(message: 'O valor total do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor do documento não pode ser negativo.')]
+    #[Format\Number(13, 2)]
+    protected string $valorTotal;
+
+    #[Assert\NotBlank(message: 'O valor do ICMS do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor do ICMS do documento não pode ser negativo.')]
+    #[Format\Number(13, 2)]
+    protected string $valorIpi;
+
+    #[Assert\NotBlank(message: 'O valor de isenção do documento fiscal é obrigatório.')]
+    #[Assert\PositiveOrZero(message: 'O valor de isenção do documento não pode ser negativo.')]
+    #[Format\Number(13, 2)]
+    protected string $valorIsencao;
+
+    #[Format\Number(13, 2)]
+    protected string $outrosValores;
+
+    #[Format\Text(20)]
+    protected ?string $brancos = null;
+
+    #[Assert\NotBlank(message: 'A situação do documento fiscal é obrigatória.')]
+    #[Assert\Choice(choices: ['S', 'N', 'E', 'X', '2', '4'], message: 'Opção inválida para situação do documento.')]
+    protected string $situacao;
 
     /**
      * Constructor
-     * @param \stdClass $std
+     *
+     * @param string $cnpj CNPJ/CPF do remetente nas entradas e dos destinátarios nas saídas
+     * @param DateTime $dataEmissao Data de emissão na saída ou de recebimento na entrada
+     * @param string $uf Sigla da Unidade da Federação do remetente
+     * @param string $serie Série do documento fiscal
+     * @param string $numeroDocumento Número do documento fiscal
+     * @param string $cfop Código Fiscal de Operação e Prestação
+     * @param float $valorTotal Valor total da nota fiscal (com 2 decimais)
+     * @param float $valorIpi Montante do IPI (com 2 decimais)
+     * @param float $valorIsencao Valor amparado por isenção ou não incidência do IPI (com 2 decimais)
+     * @param string $situacao Situação da Nota fiscal
+     * N - Documento Fiscal Normal
+     * S - Documento Fiscal Cancelado
+     * E - Lançamento Extemporâneo de Documento Fiscal Normal
+     * X - Lançamento Extemporâneo de Documento Fiscal Cancelado
+     * 2 - Documento com USO DENEGADO
+     * 4 - Documento com USO inutilizado
+     * @param string $inscricaoEstadual Inscrição estadual do remetente nas entradas e do destinatário nas saídas
+     * @param float $outrosValores 'Valor que não confira débito ou crédito do ICMS (com 2 decimais)
+     *
+     * @throws ElementValidation
      */
-    public function __construct(\stdClass $std)
-    {
-        parent::__construct(self::REGISTRO);
-        $this->std = $this->standarize($std);
-        $this->postValidation();
-    }
-    
-    /**
-     * Validação secundária sobre as data informadas
-     * @throws \Exception
-     */
-    public function postValidation()
-    {
-        $this->validDoc($this->std->cnpj, 'CNPJ');
+    public function __construct(
+        string $cnpj,
+        DateTime $dataEmissao,
+        string $uf,
+        string $serie,
+        string $numeroDocumento,
+        string $cfop,
+        float $valorTotal,
+        float $valorIpi,
+        float $valorIsencao,
+        string $situacao,
+        string $inscricaoEstadual = 'ISENTO',
+        float $outrosValores = 0.00,
+    ) {
+        parent::__construct(Records::REGISTRO_51);
+
+        $this->cnpj = $cnpj;
+        $this->dataEmissao = $dataEmissao;
+        $this->uf = $uf;
+        $this->serie = $serie;
+        $this->numeroDocumento = $numeroDocumento;
+        $this->cfop = $cfop;
+        $this->valorTotal = (string) $valorTotal;
+        $this->valorIpi = (string) $valorIpi;
+        $this->valorIsencao = (string) $valorIsencao;
+        $this->situacao = $situacao;
+        $this->inscricaoEstadual = $inscricaoEstadual;
+        $this->outrosValores = (string) $outrosValores;
+
+        $this->validate();
+        $this->format();
     }
 }
