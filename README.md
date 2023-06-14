@@ -5,7 +5,7 @@
 SINTEGRA, Sistema Integrado de Informações sobre Operações Interestaduais com Mercadorias e Serviços, foi implantado no Brasil através do Convênio ICMS 57/1995 para facilitar o fornecimento de informações dos contribuintes às fiscalizações estaduais, permitindo o controle informatizado das operações de entradas e saídas interestaduais realizadas pelos contribuintes de ICMS.
 
 ![PHP Supported Version][ico-php]
-![Actions](https://github.com/guiiamorim/sped-sintegra/actions/workflows/ci.yml/badge.svg)
+![Actions](https://github.com/guiiamorim/sintegra-php/actions/workflows/ci.yml/badge.svg)
 [![Latest Stable Version][ico-stable]][link-packagist]
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![License][ico-license]][link-packagist]
@@ -110,28 +110,28 @@ A SEFAZ/SP solicita, na notificação, a entrega mensal de arquivos, isto é, o 
 _E deve ser instalado com:_
 
 ```bash
-composer require guiiamorim/sped-sintegra
+composer require guiiamorim/sintegra-php
 ```
 
 Ou ainda alterando o composer.json do seu aplicativo inserindo:
 
 ```json
 "require": {
-    "guiiamorim/sped-sintegra" : "^1.0"
+    "guiiamorim/sintegra-php" : "^1.0"
 }
 ```
 
 _Para utilizar o pacote em desenvolvimento (branch master) deve ser instalado com:_
 
 ```bash
-composer require guiiamorim/sped-sintegra:dev-master
+composer require guiiamorim/sintegra-php:dev-master
 ```
 
 _Ou ainda alterando o composer.json do seu aplicativo inserindo:_
 
 ```json
 "require": {
-    "guiiamorim/sped-sintegra" : "dev-master"
+    "guiiamorim/sintegra-php" : "dev-master"
 }
 ```
 
@@ -177,17 +177,17 @@ Guilherme Ferreira de Amorim (developer)
 
 Este pacote está diponibilizado sob LGPLv3 ou MIT License (MIT). Leia [Arquivo de Licença](LICENSE.md) para maiores informações.
 
-[ico-php]: https://img.shields.io/packagist/dependency-v/guiiamorim/sped-sintegra/php
-[ico-stable]: https://poser.pugx.org/guiiamorim/sped-sintegra/version
-[ico-stars]: https://img.shields.io/github/stars/guiiamorim/sped-sintegra.svg?style=flat-square
-[ico-forks]: https://img.shields.io/github/forks/guiiamorim/sped-sintegra.svg?style=flat-square
-[ico-issues]: https://img.shields.io/github/issues/guiiamorim/sped-sintegra.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/guiiamorim/sped-sintegra.svg?style=flat-square
-[ico-version]: https://img.shields.io/packagist/v/guiiamorim/sped-sintegra.svg?style=flat-square
+[ico-php]: https://img.shields.io/packagist/dependency-v/guiiamorim/sintegra-php/php
+[ico-stable]: https://poser.pugx.org/guiiamorim/sintegra-php/version
+[ico-stars]: https://img.shields.io/github/stars/guiiamorim/sintegra-php.svg?style=flat-square
+[ico-forks]: https://img.shields.io/github/forks/guiiamorim/sintegra-php.svg?style=flat-square
+[ico-issues]: https://img.shields.io/github/issues/guiiamorim/sintegra-php.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/guiiamorim/sintegra-php.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/guiiamorim/sintegra-php.svg?style=flat-square
 [ico-license]: https://poser.pugx.org/nfephp-org/nfephp/license.svg?style=flat-square
-[link-packagist]: https://packagist.org/packages/guiiamorim/sped-sintegra
-[link-downloads]: https://packagist.org/packages/guiiamorim/sped-sintegra
+[link-packagist]: https://packagist.org/packages/guiiamorim/sintegra-php
+[link-downloads]: https://packagist.org/packages/guiiamorim/sintegra-php
 [link-author]: https://github.com/nfephp-org
-[link-issues]: https://github.com/guiiamorim/sped-sintegra/issues
-[link-forks]: https://github.com/guiiamorim/sped-sintegra/network
-[link-stars]: https://github.com/guiiamorim/sped-sintegra/stargazers
+[link-issues]: https://github.com/guiiamorim/sintegra-php/issues
+[link-forks]: https://github.com/guiiamorim/sintegra-php/network
+[link-stars]: https://github.com/guiiamorim/sintegra-php/stargazers
